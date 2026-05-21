@@ -1,18 +1,33 @@
 {
   "name": "semanticql",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
+  "description": "Simplified semantic SQL shell for PostgreSQL",
   "license": "ISC",
-  "description": "",
+  "bin": {
+    "semanticql": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/cli.ts",
+    "cli": "tsx src/cli.ts",
+    "start": "node dist/cli.js"
+  },
+  "keywords": [
+    "postgres",
+    "sql",
+    "semantic",
+    "cli",
+    "database",
+    "query"
+  ],
   "dependencies": {
+    "dotenv": "^17.4.2",
+    "pg": "^8.21.0"
+  },
+  "devDependencies": {
     "@types/node": "^25.9.1",
-    "pg": "^8.21.0",
-    "ts-node": "^10.9.2",
+    "@types/pg": "^8.20.0",
+    "tsx": "^4.22.3",
     "typescript": "^6.0.3"
   }
 }
