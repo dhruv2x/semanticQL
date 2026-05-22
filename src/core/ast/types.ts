@@ -17,6 +17,11 @@ export interface Filter {
     value: string | number;
 }
 
+/** Logical group or single filter condition */
+export type Condition =
+    | { type: "filter"; column: string; operator: Operator; value: string | number }
+    | { type: "logical"; operator: "and" | "or"; left: Condition; right: Condition };
+
 /** All supported top-level query intents */
 export type QueryType = "count";
 
@@ -27,5 +32,5 @@ export type QueryType = "count";
 export interface QueryAST {
     type: QueryType;
     table: string;
-    filters: Filter[];
+    filters?: Condition;
 }

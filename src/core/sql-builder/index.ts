@@ -10,7 +10,7 @@
  *   to eliminate any SQL injection vector.
  */
 
-import type { QueryAST } from "../ast/types";
+import type { QueryAST, Condition } from "../ast/types";
 
 export interface SqlResult {
     sql: string;
@@ -50,6 +50,24 @@ export function buildSql(ast: QueryAST): SqlResult {
 }
 
 /**
+ * Recursively construct SQL for logical conditions.
+ */
+function buildConditionSql(
+    condition: Condition,
+    params: (string | number)[]
+): string {
+    if (condition.type === "filter") {
+        validateIdentifier(condition.column, "column");
+        params.push(condition.value);
+        return `${condition.column} ${condition.operator} $${params.length}`;
+    } else {
+        const leftSql = buildConditionSql(condition.left, params);
+        const rightSql = buildConditionSql(condition.right, params);
+        return `(${leftSql} ${condition.operator.toUpperCase()} ${rightSql})`;
+    }
+}
+
+/**
  * Build a count query.
  * @param {QueryAST} ast an AST to convert to SQL
  * @returns {SqlResult} an object with sql and params
@@ -58,17 +76,11 @@ function buildCountQuery(ast: QueryAST): SqlResult {
     validateIdentifier(ast.table, "table");
 
     const params: (string | number)[] = [];
-    const conditions: string[] = [];
-
-    for (const filter of ast.filters) {
-        validateIdentifier(filter.column, "column");
-        params.push(filter.value);
-        conditions.push(`${filter.column} ${filter.operator} $${params.length}`);
-    }
-
     let sql = "";
-    if (conditions.length > 0) {
-        sql = `SELECT COUNT(*)\nFROM ${ast.table}\nWHERE ${conditions.join(" AND ")};`;
+
+    if (ast.filters) {
+        const whereClause = buildConditionSql(ast.filters, params);
+        sql = `SELECT COUNT(*)\nFROM ${ast.table}\nWHERE ${whereClause};`;
     } else {
         sql = `SELECT COUNT(*) FROM ${ast.table};`;
     }

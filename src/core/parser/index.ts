@@ -2,14 +2,11 @@
  * SemanticQL Parser
  *
  * Consumes a token stream produced by the tokenizer and builds a QueryAST.
- * Uses a hand-written, deterministic parser targeting count queries.
- *
- * Grammar (informally):
- *   query ::= "how many" <table> ("with" <column> <value>)?
+ * Uses a modular, extensible architecture designed to support future query types.
  */
 
 import type { Token } from "../tokenizer/index";
-import type { QueryAST, Filter } from "../ast/types";
+import type { QueryAST, Filter, Operator, Condition } from "../ast/types";
 
 export class ParseError extends Error {
     constructor(message: string) {
@@ -58,6 +55,180 @@ class TokenStream {
     }
 }
 
+const COMPARISON_OPERATORS: Record<string, Operator> = {
+    // Greater than
+    "more than": ">",
+    "greater than": ">",
+    "higher than": ">",
+    "above": ">",
+    "over": ">",
+
+    // Less than
+    "less than": "<",
+    "lower than": "<",
+    "below": "<",
+    "under": "<",
+
+    // At least
+    "at least": ">=",
+    "minimum": ">=",
+    "no less than": ">=",
+    "greater than or equal to": ">=",
+
+    // At most
+    "at most": "<=",
+    "maximum": "<=",
+    "no more than": "<=",
+    "less than or equal to": "<=",
+
+    // Equal to
+    "equal to": "=",
+    "equals": "=",
+    "exactly": "=",
+    "same as": "=",
+};
+
+/**
+ * Scalable parser interface.
+ * Allows adding other query types (e.g. SELECT, SUM, AVERAGE) in the future.
+ */
+interface QueryParser {
+    supports(ts: TokenStream): boolean;
+    parse(ts: TokenStream): QueryAST;
+}
+
+/**
+ * Parse one or more filters separated by "and" and "or" starting with "with" or "where".
+ */
+function parseFilters(ts: TokenStream): Condition | undefined {
+    if (ts.isEnd()) {
+        return undefined;
+    }
+
+    const next = ts.peek();
+    if (!next || next.type !== "KEYWORD" || (next.value !== "with" && next.value !== "where")) {
+        return undefined;
+    }
+
+    ts.consume(); // Consume "with" or "where"
+
+    return parseExpression(ts);
+}
+
+function parseExpression(ts: TokenStream): Condition {
+    let node = parseTerm(ts);
+
+    while (true) {
+        const next = ts.peek();
+        if (next && next.type === "KEYWORD" && next.value === "or") {
+            ts.consume(); // consume 'or'
+            const right = parseTerm(ts);
+            node = {
+                type: "logical",
+                operator: "or",
+                left: node,
+                right: right,
+            };
+        } else {
+            break;
+        }
+    }
+
+    return node;
+}
+
+function parseTerm(ts: TokenStream): Condition {
+    let node = parseFactor(ts);
+
+    while (true) {
+        const next = ts.peek();
+        if (next && next.type === "KEYWORD" && next.value === "and") {
+            ts.consume(); // consume 'and'
+            const right = parseFactor(ts);
+            node = {
+                type: "logical",
+                operator: "and",
+                left: node,
+                right: right,
+            };
+        } else {
+            break;
+        }
+    }
+
+    return node;
+}
+
+function parseFactor(ts: TokenStream): Condition {
+    const columnToken = ts.expect("WORD");
+    const column = columnToken.value;
+
+    let operator: Operator = "=";
+
+    // Peek next token to see if it's a known comparison operator keyword
+    const nextToken = ts.peek();
+    if (nextToken && nextToken.type === "KEYWORD" && nextToken.value in COMPARISON_OPERATORS) {
+        const opToken = ts.consume();
+        operator = COMPARISON_OPERATORS[opToken.value];
+    }
+
+    const valueToken = ts.consume();
+    if (valueToken.type !== "WORD" && valueToken.type !== "NUMBER") {
+        throw new ParseError(
+            `Expected a value (WORD or NUMBER) after column "${column}", got "${valueToken.type}" ("${valueToken.value}")`
+        );
+    }
+
+    const value = valueToken.type === "NUMBER" ? parseFloat(valueToken.value) : valueToken.value;
+
+    return {
+        type: "filter",
+        column,
+        operator,
+        value,
+    };
+}
+
+/**
+ * Parser for count queries starting with "how many".
+ */
+class CountQueryParser implements QueryParser {
+    supports(ts: TokenStream): boolean {
+        const next = ts.peek();
+        return next !== undefined && next.type === "KEYWORD" && (next.value === "how many" || next.value === "count");
+    }
+
+    parse(ts: TokenStream): QueryAST {
+        const start = ts.consume();
+        if (
+            start.type !== "KEYWORD" ||
+            (start.value !== "how many" && start.value !== "count")
+        ) {
+            throw new ParseError(
+                `Expected "how many" or "count", got "${start.value}"`
+            );
+        }
+        const tableToken = ts.expect("WORD");
+        const table = tableToken.value;
+
+        const filters = parseFilters(ts);
+
+        return {
+            type: "count",
+            table,
+            filters,
+        };
+    }
+}
+
+/**
+ * Registered query parsers.
+ * Easily extendable by adding more parsers to this array.
+ */
+const queryParsers: QueryParser[] = [
+    new CountQueryParser(),
+];
+
 /**
  * Main parser entry point.
  * @param {Token[]} tokens a token stream to parse
@@ -71,53 +242,18 @@ export function parse(tokens: Token[]): QueryAST {
         throw new ParseError("Empty query");
     }
 
-    ts.expect("KEYWORD", "how many");
-    const tableToken = ts.expect("WORD");
-    const table = tableToken.value;
+    for (const parser of queryParsers) {
+        if (parser.supports(ts)) {
+            const ast = parser.parse(ts);
 
-    const filters: Filter[] = [];
+            if (!ts.isEnd()) {
+                const next = ts.peek();
+                throw new ParseError(`Unexpected trailing token: "${next?.value}"`);
+            }
 
-    if (!ts.isEnd()) {
-        ts.expect("KEYWORD", "with");
-        const columnToken = ts.expect("WORD");
-        
-        const valueToken = ts.consume();
-        if (valueToken.type !== "WORD" && valueToken.type !== "NUMBER") {
-            throw new ParseError(`Expected a value (WORD or NUMBER) after column, got "${valueToken.type}" ("${valueToken.value}")`);
+            return ast;
         }
-
-        const value = valueToken.type === "NUMBER" ? parseFloat(valueToken.value) : valueToken.value;
-
-        filters.push({
-            column: columnToken.value,
-            operator: "=",
-            value,
-        });
     }
 
-    if (!ts.isEnd()) {
-        const next = ts.peek();
-        throw new ParseError(`Unexpected trailing token: "${next?.value}"`);
-    }
-    /*
-        Example:
-        {
-            "type": "count",
-            "table": "sale_order",
-            "filters": [
-                {
-                "column": "state",
-                "operator": "=",
-                "value": "sale"
-                }
-            ]
-        }
-
-    */
-
-    return {
-        type: "count",
-        table,
-        filters,
-    };
+    throw new ParseError(`Unsupported query starting with: "${first.value}"`);
 }

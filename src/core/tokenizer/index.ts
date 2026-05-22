@@ -19,8 +19,40 @@ export interface Token {
  */
 const KEYWORDS: string[] = [
     "how many",
+    "count",
+
     "with",
-];
+    "where",
+    
+    "and",
+    "or",
+
+    "more than",
+    "greater than",
+    "higher than",
+    "above",
+    "over",
+
+    "less than",
+    "lower than",
+    "below",
+    "under",
+
+    "at least",
+    "minimum",
+    "no less than",
+    "greater than or equal to",
+
+    "at most",
+    "maximum",
+    "no more than",
+    "less than or equal to",
+
+    "equal to",
+    "equals",
+    "exactly",
+    "same as",
+].sort((a, b) => b.length - a.length);
 
 /**
  * Tokenize a natural-language query string.
