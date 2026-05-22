@@ -4,13 +4,13 @@
   "description": "Simplified semantic SQL shell for PostgreSQL",
   "license": "ISC",
   "bin": {
-    "semanticql": "./dist/cli.js"
+    "semanticql": "./dist/cli/index.js"
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/cli.ts",
-    "cli": "tsx src/cli.ts",
-    "start": "node dist/cli.js"
+    "dev": "tsx watch src/cli/index.ts",
+    "cli": "tsx src/cli/index.ts",
+    "start": "node dist/cli/index.js"
   },
   "keywords": [
     "postgres",
@@ -22,11 +22,10 @@
   ],
   "dependencies": {
     "dotenv": "^17.4.2",
-    "pg": "^8.21.0"
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
-    "@types/pg": "^8.20.0",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3"
   }

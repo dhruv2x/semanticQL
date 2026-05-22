@@ -11,10 +11,10 @@
  * parameterized query you can pass directly to `pg.query(sql, params)`.
  */
 
-import { tokenize } from "./tokenizer/index";
-import { parse } from "./parser/index";
-import { buildSql } from "./sql-builder/index";
-import type { QueryAST } from "./ast/types";
+import { tokenize } from "./core/tokenizer/index";
+import { parse } from "./core/parser/index";
+import { buildSql } from "./core/sql-builder/index";
+import type { QueryAST } from "./core/ast/types";
 
 /** Public convenience type re-export */
 export type { QueryAST };
