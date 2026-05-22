@@ -15,20 +15,28 @@ import { tokenize } from "./core/tokenizer/index";
 import { parse } from "./core/parser/index";
 import { buildSql } from "./core/sql-builder/index";
 import type { QueryAST } from "./core/ast/types";
+import type { Token } from "./core/tokenizer";
 
 /** Public convenience type re-export */
 export type { QueryAST };
+
+export interface SemanticQLResult {
+  tokens: Token[];
+  ast: QueryAST;
+  sql: string;
+  params: (string | number)[];
+}
 
 /**
  * Convert a plain-English query string into a parameterized SQL statement.
  *
  * @param input  Natural-language query
- * @returns      { sql, params } ready for use with a PostgreSQL client
+ * @returns      { tokens, ast, sql, params } ready for use with a PostgreSQL client
  * @throws       ParseError  if the input does not match a grammar
  */
-export function semanticQL(input: string): { sql: string; params: (string | number)[]; ast: QueryAST } {
+export function semanticQL(input: string): SemanticQLResult {
     const tokens = tokenize(input);
     const ast = parse(tokens);
     const { sql, params } = buildSql(ast);
-    return { sql, params, ast };
+    return { tokens, ast, sql, params };
 }

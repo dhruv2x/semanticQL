@@ -5,16 +5,21 @@
  * - Intercepts internal CLI controls (help, exit, etc.)
  * - Executes queries asynchronously
  * - Handles graceful stream termination
+ * - Supports optional debug mode
  */
 
 import { createPrompt } from "./prompt";
-import { executeQuery } from "../db/execute";
+import {
+  executeQuery,
+  executeSQL,
+} from "../db/execute";
 import { printRows } from "./output";
 import {
   isExitCommand,
   isHelpCommand,
   printHelp,
 } from "./commands";
+import { semanticQL } from "..";
 
 export async function startRepl() {
   const rl = createPrompt();
@@ -40,9 +45,55 @@ export async function startRepl() {
       return;
     }
 
+    const isDebug = query.endsWith(" -d");
+
+    const cleanedQuery = isDebug
+      ? query.slice(0, -3).trim()
+      : query;
+
     try {
-      const rows = await executeQuery(query);
-      printRows(rows);
+      if (isDebug) {
+        const result = semanticQL(cleanedQuery);
+
+        console.log("--- Tokens ---");
+        console.log(
+          JSON.stringify(result.tokens, null, 2)
+        );
+
+        console.log("--- Parsed AST ---");
+        console.log(
+          JSON.stringify(result.ast, null, 2)
+        );
+
+        console.log("--- Generated SQL ---");
+        console.log(result.sql);
+
+        console.log("--- Params ---");
+        console.log(
+          JSON.stringify(result.params, null, 2)
+        );
+
+        const rows = await executeSQL(
+          result.sql,
+          result.params
+        );
+
+        console.log("--- DB Result ---");
+
+        for (const row of rows) {
+          for (const [key, value] of Object.entries(row)) {
+            console.log(
+              `${key.toUpperCase()} = ${value}`
+            );
+          }
+        }
+      } else {
+        const rows = await executeQuery(
+          cleanedQuery
+        );
+
+        printRows(rows);
+      }
     } catch (error) {
       console.error(error);
     }
