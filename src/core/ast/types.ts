@@ -23,7 +23,7 @@ export type Condition =
     | { type: "logical"; operator: "and" | "or"; left: Condition; right: Condition };
 
 /** All supported top-level query intents */
-export type QueryType = "count";
+export type QueryType = "count" | "select";
 
 /**
  * The root AST node produced by the parser.
@@ -32,5 +32,6 @@ export type QueryType = "count";
 export interface QueryAST {
     type: QueryType;
     table: string;
+    columns?: string[];
     filters?: Condition;
 }

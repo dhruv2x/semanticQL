@@ -21,8 +21,15 @@ const KEYWORDS: string[] = [
     "how many",
     "count",
 
+    "show",
+    "list",
+    "give",
+    "fetch",
+    "get",
+
     "with",
     "where",
+    "from",
     
     "and",
     "or",
@@ -70,6 +77,22 @@ export function tokenize(input: string): Token[] {
     while (text.length > 0) {
         text = text.trimStart();
         if (text.length === 0) break;
+
+        // Check for double quoted string
+        const doubleQuoteMatch = /^"([^"\\]*(?:\\.[^"\\]*)*)"/.exec(text);
+        if (doubleQuoteMatch && doubleQuoteMatch[1] !== undefined) {
+            tokens.push({ type: "WORD", value: doubleQuoteMatch[1] });
+            text = text.slice(doubleQuoteMatch[0].length);
+            continue;
+        }
+
+        // Check for single quoted string
+        const singleQuoteMatch = /^'([^'\\]*(?:\\.[^'\\]*)*)'/.exec(text);
+        if (singleQuoteMatch && singleQuoteMatch[1] !== undefined) {
+            tokens.push({ type: "WORD", value: singleQuoteMatch[1] });
+            text = text.slice(singleQuoteMatch[0].length);
+            continue;
+        }
 
         let matched = false;
 

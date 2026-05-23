@@ -28,6 +28,11 @@ class TokenStream {
         return this.tokens[this.pos];
     }
 
+    // Looks at an offset without moving the position
+    peekAhead(offset: number): Token | undefined {
+        return this.tokens[this.pos + offset];
+    }
+
     // Moves the position and returns the token
     consume(): Token {
         const t = this.tokens[this.pos];
@@ -222,11 +227,87 @@ class CountQueryParser implements QueryParser {
 }
 
 /**
+ * Parser for select queries starting with "show", "list", "give", "fetch", or "get".
+ */
+class SelectQueryParser implements QueryParser {
+    supports(ts: TokenStream): boolean {
+        const next = ts.peek();
+        return (
+            next !== undefined &&
+            next.type === "KEYWORD" &&
+            (next.value === "show" ||
+                next.value === "list" ||
+                next.value === "give" ||
+                next.value === "fetch" ||
+                next.value === "get")
+        );
+    }
+
+    parse(ts: TokenStream): QueryAST {
+        const start = ts.consume();
+        if (
+            start.type !== "KEYWORD" ||
+            (start.value !== "show" &&
+                start.value !== "list" &&
+                start.value !== "give" &&
+                start.value !== "fetch" &&
+                start.value !== "get")
+        ) {
+            throw new ParseError(
+                `Expected select keyword, got "${start.value}"`
+            );
+        }
+
+        // Scan the remaining tokens to see if there is a 'from' keyword.
+        let hasFrom = false;
+        let fromOffset = 0;
+        while (true) {
+            const tok = ts.peekAhead(fromOffset);
+            if (!tok) {
+                break;
+            }
+            if (tok.type === "KEYWORD" && tok.value === "from") {
+                hasFrom = true;
+                break;
+            }
+            fromOffset++;
+        }
+
+        let columns: string[] = ["*"];
+        let table = "";
+
+        if (hasFrom) {
+            columns = [];
+            for (let i = 0; i < fromOffset; i++) {
+                const colToken = ts.expect("WORD");
+                columns.push(colToken.value);
+            }
+            ts.expect("KEYWORD", "from");
+            const tableToken = ts.expect("WORD");
+            table = tableToken.value;
+        } else {
+            const tableToken = ts.expect("WORD");
+            table = tableToken.value;
+        }
+
+        const filters = parseFilters(ts);
+
+        return {
+            type: "select",
+            table,
+            columns,
+            filters,
+        };
+    }
+}
+
+/**
  * Registered query parsers.
  * Easily extendable by adding more parsers to this array.
  */
 const queryParsers: QueryParser[] = [
     new CountQueryParser(),
+    new SelectQueryParser(),
 ];
 
 /**

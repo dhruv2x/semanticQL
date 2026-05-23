@@ -40,6 +40,8 @@ export function buildSql(ast: QueryAST): SqlResult {
     switch (ast.type) {
         case "count":
             return buildCountQuery(ast);
+        case "select":
+            return buildSelectQuery(ast);
         default: {
             // Exhaustiveness check — TypeScript will warn if a new type is added
             // to QueryType without a matching case here.
@@ -83,6 +85,35 @@ function buildCountQuery(ast: QueryAST): SqlResult {
         sql = `SELECT COUNT(*)\nFROM ${ast.table}\nWHERE ${whereClause};`;
     } else {
         sql = `SELECT COUNT(*) FROM ${ast.table};`;
+    }
+
+    return { sql, params };
+}
+
+/**
+ * Build a select query.
+ * @param {QueryAST} ast an AST to convert to SQL
+ * @returns {SqlResult} an object with sql and params
+ */
+function buildSelectQuery(ast: QueryAST): SqlResult {
+    validateIdentifier(ast.table, "table");
+
+    const selectColumns = ast.columns || ["*"];
+    for (const col of selectColumns) {
+        if (col !== "*") {
+            validateIdentifier(col, "column");
+        }
+    }
+
+    const selectColumnsStr = selectColumns.join(", ");
+    const params: (string | number)[] = [];
+    let sql = "";
+
+    if (ast.filters) {
+        const whereClause = buildConditionSql(ast.filters, params);
+        sql = `SELECT ${selectColumnsStr}\nFROM ${ast.table}\nWHERE ${whereClause};`;
+    } else {
+        sql = `SELECT ${selectColumnsStr} FROM ${ast.table};`;
     }
 
     return { sql, params };
