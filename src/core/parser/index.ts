@@ -91,6 +91,7 @@ const COMPARISON_OPERATORS: Record<string, Operator> = {
     "equals": "=",
     "exactly": "=",
     "same as": "=",
+    "is": "=",
 };
 
 /**

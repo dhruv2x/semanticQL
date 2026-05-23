@@ -19,7 +19,7 @@ import {
   isHelpCommand,
   printHelp,
 } from "./commands";
-import { semanticQL } from "..";
+import { semanticQL, normalize } from "..";
 
 export async function startRepl() {
   const rl = createPrompt();
@@ -52,46 +52,37 @@ export async function startRepl() {
       : query;
 
     try {
+      const normalizedResult = normalize(cleanedQuery);
+
+      if (normalizedResult.isRaw) {
+        console.log("⚡ [Raw SQL Bypassing Engine]");
+        const rows = await executeSQL(normalizedResult.rawSql!, []);
+        printRows(rows);
+        rl.prompt();
+        return;
+      }
+
+      // 3. Handle Standard SemanticQL Processing Mode
       if (isDebug) {
-        const result = semanticQL(cleanedQuery);
+        const result = semanticQL(normalizedResult.query!);
 
         console.log("--- Tokens ---");
-        console.log(
-          JSON.stringify(result.tokens, null, 2)
-        );
+        console.log(JSON.stringify(result.tokens, null, 2));
 
         console.log("--- Parsed AST ---");
-        console.log(
-          JSON.stringify(result.ast, null, 2)
-        );
+        console.log(JSON.stringify(result.ast, null, 2));
 
         console.log("--- Generated SQL ---");
         console.log(result.sql);
 
         console.log("--- Params ---");
-        console.log(
-          JSON.stringify(result.params, null, 2)
-        );
+        console.log(JSON.stringify(result.params, null, 2));
 
-        const rows = await executeSQL(
-          result.sql,
-          result.params
-        );
-
+        const rows = await executeSQL(result.sql, result.params);
         console.log("--- DB Result ---");
-
-        for (const row of rows) {
-          for (const [key, value] of Object.entries(row)) {
-            console.log(
-              `${key.toUpperCase()} = ${value}`
-            );
-          }
-        }
+        printRows(rows);
       } else {
-        const rows = await executeQuery(
-          cleanedQuery
-        );
-
+        const rows = await executeQuery(normalizedResult.query!);
         printRows(rows);
       }
     } catch (error) {

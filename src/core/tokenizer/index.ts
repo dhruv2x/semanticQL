@@ -59,6 +59,7 @@ const KEYWORDS: string[] = [
     "equals",
     "exactly",
     "same as",
+    "is",
 ].sort((a, b) => b.length - a.length);
 
 /**
