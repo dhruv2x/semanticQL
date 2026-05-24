@@ -48,34 +48,46 @@ const TOP_LEVEL_KEYWORDS: readonly string[] = [
 ];
 
 function stripFillerWords(input: string): string {
-    const lower = input.toLowerCase();
+    const lowerInput = input.toLowerCase();
+    
+    let matchedKeyword: string | null = null;
+    let keywordIndex = -1;
 
     for (const kw of TOP_LEVEL_KEYWORDS) {
-        if (!lower.startsWith(kw)) continue;
+        const index = lowerInput.indexOf(kw);
+        
+        if (index !== -1) {
+            const charAfter = lowerInput[index + kw.length];
+            const isWordBoundaryAfter = charAfter === undefined || /^\s/.test(charAfter);
+            const isWordBoundaryBefore = index === 0 || /^\s/.test(lowerInput[index - 1]);
 
-        // Make sure the keyword is followed by whitespace (not part of a longer word).
-        const afterKw = lower.slice(kw.length);
-        if (afterKw.length > 0 && !/^\s/.test(afterKw)) continue;
-
-        // The original casing of the keyword part.
-        const kwOriginal = input.slice(0, kw.length);
-
-        // The rest of the string after the keyword, split by whitespace.
-        const rest = input.slice(kw.length).trimStart();
-        const words = rest.split(/\s+/);
-
-        // Strip leading filler words.
-        let i = 0;
-        while (i < words.length && FILLER_WORDS.has(words[i]!.toLowerCase())) {
-            i++;
+            if (isWordBoundaryBefore && isWordBoundaryAfter) {
+                // Track the earliest matching top-level keyword position
+                if (keywordIndex === -1 || index < keywordIndex) {
+                    keywordIndex = index;
+                    matchedKeyword = kw;
+                }
+            }
         }
-
-        const cleaned = words.slice(i).join(" ");
-        return cleaned ? `${kwOriginal} ${cleaned}` : kwOriginal;
     }
 
-    // No top-level keyword matched — return unchanged.
-    return input;
+    if (keywordIndex === -1 || !matchedKeyword) {
+        return input.trim();
+    }
+
+    const normalizedPart = input.slice(keywordIndex);
+    const kwOriginal = normalizedPart.slice(0, matchedKeyword.length);
+    const rest = normalizedPart.slice(matchedKeyword.length).trimStart();
+    if (!rest) return kwOriginal;
+
+    const words = rest.split(/\s+/);
+    let i = 0;
+    while (i < words.length && FILLER_WORDS.has(words[i]!.toLowerCase())) {
+        i++;
+    }
+
+    const cleanedRest = words.slice(i).join(" ");
+    return cleanedRest ? `${kwOriginal} ${cleanedRest}` : kwOriginal;
 }
 
 // ---------------------------------------------------------------------------
@@ -100,29 +112,19 @@ export function normalize(rawInput: string): NormalizeResult {
 
     const RAW_FLAG = "-r";
 
-    // Flag at the very beginning
     if (input.startsWith(RAW_FLAG + " ") || input === RAW_FLAG) {
         const sql = input.slice(RAW_FLAG.length).trim();
         return { isRaw: true, rawSql: sql };
     }
 
-    // Flag at the very end
     if (input.endsWith(" " + RAW_FLAG)) {
         const sql = input.slice(0, input.length - (RAW_FLAG.length + 1)).trim();
         return { isRaw: true, rawSql: sql };
     }
 
-    // ------------------------------------------------------------------
-    // 2. Trailing semicolon removal (natural-language queries only)
-    // ------------------------------------------------------------------
-
     if (input.endsWith(";")) {
         input = input.slice(0, -1).trimEnd();
     }
-
-    // ------------------------------------------------------------------
-    // 3. Filler word removal (after top-level keywords only)
-    // ------------------------------------------------------------------
 
     input = stripFillerWords(input);
 
