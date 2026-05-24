@@ -10,7 +10,7 @@
  *   to eliminate any SQL injection vector.
  */
 
-import type { QueryAST, Condition } from "../ast/types";
+import type { AggregateQueryAST, QueryAST, SelectQueryAST, Condition } from "../ast/types";
 
 export interface SqlResult {
     sql: string;
@@ -38,14 +38,14 @@ function validateIdentifier(name: string, kind: "table" | "column"): void {
  */
 export function buildSql(ast: QueryAST): SqlResult {
     switch (ast.type) {
-        case "count":
-            return buildCountQuery(ast);
+        case "aggregate":
+            return buildAggregateQuery(ast);
         case "select":
             return buildSelectQuery(ast);
         default: {
             // Exhaustiveness check — TypeScript will warn if a new type is added
             // to QueryType without a matching case here.
-            const _exhaustive: never = ast.type;
+            const _exhaustive: never = ast;
             throw new Error(`[SemanticQL SqlBuilder] Unknown query type: ${_exhaustive}`);
         }
     }
@@ -70,21 +70,27 @@ function buildConditionSql(
 }
 
 /**
- * Build a count query.
+ * Build an aggregate query.
  * @param {QueryAST} ast an AST to convert to SQL
  * @returns {SqlResult} an object with sql and params
  */
-function buildCountQuery(ast: QueryAST): SqlResult {
+function buildAggregateQuery(ast: AggregateQueryAST): SqlResult {
     validateIdentifier(ast.table, "table");
+
+    const aggregateFunction = ast.aggregate.function.toUpperCase();
+    const aggregateTarget = ast.aggregate.column ?? "*";
+    if (aggregateTarget !== "*") {
+        validateIdentifier(aggregateTarget, "column");
+    }
 
     const params: (string | number)[] = [];
     let sql = "";
 
     if (ast.filters) {
         const whereClause = buildConditionSql(ast.filters, params);
-        sql = `SELECT COUNT(*)\nFROM ${ast.table}\nWHERE ${whereClause};`;
+        sql = `SELECT ${aggregateFunction}(${aggregateTarget})\nFROM ${ast.table}\nWHERE ${whereClause};`;
     } else {
-        sql = `SELECT COUNT(*) FROM ${ast.table};`;
+        sql = `SELECT ${aggregateFunction}(${aggregateTarget}) FROM ${ast.table};`;
     }
 
     return { sql, params };
@@ -95,7 +101,7 @@ function buildCountQuery(ast: QueryAST): SqlResult {
  * @param {QueryAST} ast an AST to convert to SQL
  * @returns {SqlResult} an object with sql and params
  */
-function buildSelectQuery(ast: QueryAST): SqlResult {
+function buildSelectQuery(ast: SelectQueryAST): SqlResult {
     validateIdentifier(ast.table, "table");
 
     const selectColumns = ast.columns || ["*"];

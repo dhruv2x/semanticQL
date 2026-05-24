@@ -6,7 +6,8 @@
  */
 
 import type { Token } from "../tokenizer/index";
-import type { QueryAST, Filter, Operator, Condition } from "../ast/types";
+import { AGGREGATE_FUNCTIONS } from "../language/index";
+import type { QueryAST, Operator, Condition } from "../ast/types";
 
 export class ParseError extends Error {
     constructor(message: string) {
@@ -96,7 +97,7 @@ const COMPARISON_OPERATORS: Record<string, Operator> = {
 
 /**
  * Scalable parser interface.
- * Allows adding other query types (e.g. SELECT, SUM, AVERAGE) in the future.
+ * Allows adding other query types in the future.
  */
 interface QueryParser {
     supports(ts: TokenStream): boolean;
@@ -196,32 +197,60 @@ function parseFactor(ts: TokenStream): Condition {
 }
 
 /**
- * Parser for count queries starting with "how many".
+ * Parser for aggregate queries such as:
+ * - count users
+ * - count from users
+ * - sum revenue from sales
+ * - average salary from employees
  */
-class CountQueryParser implements QueryParser {
+class AggregateQueryParser implements QueryParser {
     supports(ts: TokenStream): boolean {
         const next = ts.peek();
-        return next !== undefined && next.type === "KEYWORD" && (next.value === "how many" || next.value === "count");
+        return next !== undefined && next.type === "KEYWORD" && next.value in AGGREGATE_FUNCTIONS;
     }
 
     parse(ts: TokenStream): QueryAST {
         const start = ts.consume();
-        if (
-            start.type !== "KEYWORD" ||
-            (start.value !== "how many" && start.value !== "count")
-        ) {
-            throw new ParseError(
-                `Expected "how many" or "count", got "${start.value}"`
-            );
+        if (start.type !== "KEYWORD" || !(start.value in AGGREGATE_FUNCTIONS)) {
+            throw new ParseError(`Expected aggregate keyword, got "${start.value}"`);
         }
-        const tableToken = ts.expect("WORD");
-        const table = tableToken.value;
+
+        const aggregateFunction = AGGREGATE_FUNCTIONS[start.value];
+        let table = "";
+        let column: string | undefined;
+
+        const next = ts.peek();
+        if (next?.type === "KEYWORD" && next.value === "from") {
+            ts.consume();
+            const tableToken = ts.expect("WORD");
+            table = tableToken.value;
+        } else {
+            const wordToken = ts.expect("WORD");
+            const afterWord = ts.peek();
+
+            if (afterWord?.type === "KEYWORD" && afterWord.value === "from") {
+                column = wordToken.value;
+                ts.consume();
+                const tableToken = ts.expect("WORD");
+                table = tableToken.value;
+            } else if (aggregateFunction === "count") {
+                table = wordToken.value;
+            } else {
+                throw new ParseError(
+                    `Expected "from" after aggregate column "${wordToken.value}"`
+                );
+            }
+        }
 
         const filters = parseFilters(ts);
 
         return {
-            type: "count",
+            type: "aggregate",
             table,
+            aggregate: {
+                function: aggregateFunction,
+                column,
+            },
             filters,
         };
     }
@@ -307,7 +336,7 @@ class SelectQueryParser implements QueryParser {
  * Easily extendable by adding more parsers to this array.
  */
 const queryParsers: QueryParser[] = [
-    new CountQueryParser(),
+    new AggregateQueryParser(),
     new SelectQueryParser(),
 ];
 

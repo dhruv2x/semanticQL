@@ -18,10 +18,13 @@
  *      parser always receives a clean token stream.
  *
  *      IMPORTANT: filler words are only stripped right after the opening
- *      top-level keyword (show, list, give, fetch, get, how many, count).
+ *      top-level keyword (show, list, give, fetch, get, how many, count,
+ *      sum, avg, etc.).
  *      Filler words that appear inside filter expressions are left untouched
  *      because they may be legitimate column values.
  */
+
+import { AGGREGATE_KEYWORDS } from "../language/index";
 
 export interface NormalizeResult {
     isRaw: boolean;
@@ -38,8 +41,7 @@ const FILLER_WORDS: ReadonlySet<string> = new Set([
 ]);
 
 const TOP_LEVEL_KEYWORDS: readonly string[] = [
-    "how many",
-    "count",
+    ...AGGREGATE_KEYWORDS,
     "show",
     "list",
     "give",

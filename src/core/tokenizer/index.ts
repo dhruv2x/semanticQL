@@ -7,6 +7,8 @@
  */
 
 
+import { AGGREGATE_KEYWORDS } from "../language/index";
+
 export type TokenType = "KEYWORD" | "WORD" | "NUMBER";
 
 export interface Token {
@@ -18,8 +20,7 @@ export interface Token {
  * Known keywords that have syntactic significance in our grammar.
  */
 const KEYWORDS: string[] = [
-    "how many",
-    "count",
+    ...AGGREGATE_KEYWORDS,
 
     "show",
     "list",
@@ -46,12 +47,10 @@ const KEYWORDS: string[] = [
     "under",
 
     "at least",
-    "minimum",
     "no less than",
     "greater than or equal to",
 
     "at most",
-    "maximum",
     "no more than",
     "less than or equal to",
 
