@@ -16,7 +16,8 @@ import { printWelcome } from "./output";
 
 dotenv.config({ quiet: true });
 
-const database = process.argv[2];
+// Fallback to standard psql environment variable (PGDATABASE)
+const database = process.argv[2] || process.env.PGDATABASE;
 
 if (!database) {
   console.log("Usage: semanticql <database>");
@@ -25,10 +26,10 @@ if (!database) {
 
 connectDB({
   database,
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST || process.env.PGHOST || "/var/run/postgresql",
+  port: Number(process.env.DB_PORT || process.env.PGPORT || 5432),
+  user: process.env.DB_USER || process.env.PGUSER || process.env.USER,
+  password: process.env.DB_PASSWORD || process.env.PGPASSWORD,
 });
 
 printWelcome(database);

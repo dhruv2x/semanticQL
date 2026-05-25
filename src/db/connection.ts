@@ -19,9 +19,6 @@ export function connectDB(options: ConnectOptions) {
     password,
   } = options;
 
-  if (!host || !user || !password) {
-    throw new Error("Missing database configuration");
-  }
 
   sqlInstance = postgres({
     host,
