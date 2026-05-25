@@ -13,6 +13,22 @@ export type Operator = "=" | ">" | "<" | ">=" | "<=";
 /** Supported aggregate SQL functions */
 export type AggregateFunction = "count" | "sum" | "avg" | "max" | "min";
 
+/** Supported SQL sort directions */
+export type SortDirection = "asc" | "desc";
+
+/** ORDER BY clause */
+export interface OrderBy {
+    column: string;
+    direction: SortDirection;
+}
+
+/** Optional clauses shared by supported query types */
+export interface QueryModifiers {
+    filters?: Condition;
+    orderBy?: OrderBy;
+    limit?: number;
+}
+
 /** A single WHERE-clause condition */
 export interface Filter {
     column: string;
@@ -30,7 +46,7 @@ export type QueryType = "aggregate" | "select";
 
 interface BaseQueryAST {
     table: string;
-    filters?: Condition;
+    modifiers: QueryModifiers;
 }
 
 export interface AggregateQueryAST extends BaseQueryAST {
@@ -43,7 +59,7 @@ export interface AggregateQueryAST extends BaseQueryAST {
 
 export interface SelectQueryAST extends BaseQueryAST {
     type: "select";
-    columns?: string[];
+    columns: string[];
 }
 
 /**

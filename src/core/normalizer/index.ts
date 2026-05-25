@@ -47,6 +47,9 @@ const TOP_LEVEL_KEYWORDS: readonly string[] = [
     "give",
     "fetch",
     "get",
+    "top",
+    "latest",
+    "oldest",
 ];
 
 function stripFillerWords(input: string): string {
