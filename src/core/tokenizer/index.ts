@@ -69,6 +69,14 @@ const KEYWORDS: string[] = [
     "exactly",
     "same as",
     "is",
+
+    "starts with",
+    "startswith",
+    "ends with",
+    "endswith",
+    "containing",
+    "contains",
+    "like",
 ].sort((a, b) => b.length - a.length);
 
 /**
