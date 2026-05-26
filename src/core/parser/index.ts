@@ -171,6 +171,25 @@ const COMPARISON_OPERATORS: Record<string, Operator> = {
 };
 
 /**
+ * Mapping of natural language text-match phrases to semantic operators.
+ * SQL-specific wildcard placement is handled by the SQL builder.
+ */
+const TEXT_MATCH_OPERATORS: Record<string, Operator> = {
+    "like": "like",
+    "contains": "contains",
+    "containing": "contains",
+    "starts with": "startsWith",
+    "startswith": "startsWith",
+    "ends with": "endsWith",
+    "endswith": "endsWith",
+};
+
+const FILTER_OPERATORS: Record<string, Operator> = {
+    ...COMPARISON_OPERATORS,
+    ...TEXT_MATCH_OPERATORS,
+};
+
+/**
  * Recursive descent parser for logical OR expressions.
  * Lowest precedence in logical operations.
  */
@@ -223,8 +242,8 @@ function parseFactor(ts: TokenStream): Condition {
     // 2. Operator (defaults to '=' if not explicitly provided)
     let operator: Operator = "=";
     const nextToken = ts.peek();
-    if (nextToken?.type === "KEYWORD" && nextToken.value in COMPARISON_OPERATORS) {
-        operator = COMPARISON_OPERATORS[ts.consume().value];
+    if (nextToken?.type === "KEYWORD" && nextToken.value in FILTER_OPERATORS) {
+        operator = FILTER_OPERATORS[ts.consume().value];
     }
 
     // 3. Value

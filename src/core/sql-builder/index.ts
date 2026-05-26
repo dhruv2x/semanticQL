@@ -13,6 +13,7 @@
 import type {
     AggregateQueryAST,
     Condition,
+    Operator,
     QueryAST,
     QueryModifiers,
     SelectQueryAST,
@@ -47,6 +48,26 @@ function validateIdentifier(name: string, kind: "table" | "column"): void {
         throw new Error(
             `[SemanticQL SqlBuilder] Unsafe ${kind} identifier: "${name}"`
         );
+    }
+}
+
+function isTextMatchOperator(operator: Operator): boolean {
+    return ["like", "contains", "startsWith", "endsWith"].includes(operator);
+}
+
+function formatTextMatchValue(operator: Operator, value: string | number): string {
+    const text = String(value);
+
+    switch (operator) {
+        case "like":
+        case "contains":
+            return `%${text}%`;
+        case "startsWith":
+            return `${text}%`;
+        case "endsWith":
+            return `%${text}`;
+        default:
+            throw new Error(`[SemanticQL SqlBuilder] Unsupported text-match operator: "${operator}"`);
     }
 }
 
@@ -86,11 +107,16 @@ function buildConditionSql(
     if (condition.type === "filter") {
         // Base case: a single column comparison
         validateIdentifier(condition.column, "column");
-        params.push(condition.value);
+        const sqlOperator = isTextMatchOperator(condition.operator) ? "ILIKE" : condition.operator;
+        const value = isTextMatchOperator(condition.operator)
+            ? formatTextMatchValue(condition.operator, condition.value)
+            : condition.value;
+
+        params.push(value);
         
         // params.length works perfectly as the placeholder index because 
         // Postgres placeholders are 1-indexed ($1, $2) and arrays are 0-indexed.
-        return `${condition.column} ${condition.operator} $${params.length}`;
+        return `${condition.column} ${sqlOperator} $${params.length}`;
     } else {
         // Recursive case: AND / OR groupings
         const leftSql = buildConditionSql(condition.left, params);

@@ -7,8 +7,10 @@
  * - The SQL builder then does "query planning" to emit parameterized SQL
  */
 
-/** Supported SQL operators */
-export type Operator = "=" | ">" | "<" | ">=" | "<=";
+/** Supported SQL comparison and text-match operators */
+export type ComparisonOperator = "=" | ">" | "<" | ">=" | "<=";
+export type TextMatchOperator = "like" | "contains" | "startsWith" | "endsWith";
+export type Operator = ComparisonOperator | TextMatchOperator;
 
 /** Supported aggregate SQL functions */
 export type AggregateFunction = "count" | "sum" | "avg" | "max" | "min";
