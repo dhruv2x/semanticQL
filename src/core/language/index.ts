@@ -1,4 +1,4 @@
-import type { AggregateFunction } from "../ast/types";
+import type { AggregateFunction } from "../ast/types.js";
 
 export const AGGREGATE_FUNCTIONS: Readonly<Record<string, AggregateFunction>> = {
     "how many": "count",

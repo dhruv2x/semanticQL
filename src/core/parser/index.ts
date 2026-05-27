@@ -7,7 +7,7 @@
  * - modifier parsers handle trailing clauses independently
  */
 
-import { AGGREGATE_FUNCTIONS } from "../language/index";
+import { AGGREGATE_FUNCTIONS } from "../language/index.js";
 import type {
     AggregateFunction,
     AggregateQueryAST,
@@ -17,8 +17,8 @@ import type {
     QueryModifiers,
     SelectQueryAST,
     SortDirection,
-} from "../ast/types";
-import type { Token } from "../tokenizer/index";
+} from "../ast/types.js";
+import type { Token } from "../tokenizer/index.js";
 
 /**
  * Custom error class for parser-specific exceptions.

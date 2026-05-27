@@ -8,18 +8,18 @@
  * - Supports optional debug mode
  */
 
-import { createPrompt } from "./prompt";
+import { createPrompt } from "./prompt.js";
 import {
   executeQuery,
   executeSQL,
-} from "../db/execute";
-import { printRows } from "./output";
+} from "../db/execute.js";
+import { printRows } from "./output.js";
 import {
   isExitCommand,
   isHelpCommand,
   printHelp,
-} from "./commands";
-import { semanticQL, normalize } from "..";
+} from "./commands.js";
+import { semanticQL, normalize } from "../index.js";
 
 export async function startRepl() {
   const rl = createPrompt();

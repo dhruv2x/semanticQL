@@ -5,7 +5,7 @@
  */
 
 import readline from "readline";
-import { styles } from "../utils/styles";
+import { styles } from "../utils/styles.js";
 
 /**
  * Prompt factory for the CLI’s interactive REPL.
