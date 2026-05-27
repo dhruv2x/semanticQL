@@ -7,7 +7,7 @@
  */
 
 
-import { AGGREGATE_KEYWORDS } from "../language/index";
+import { AGGREGATE_KEYWORDS } from "../language/index.js";
 
 export type TokenType = "KEYWORD" | "WORD" | "NUMBER";
 

@@ -1,5 +1,5 @@
-import { getDB } from "./connection";
-import { semanticQL } from "../index";
+import { getDB } from "./connection.js";
+import { semanticQL } from "../index.js";
 
 export async function executeQuery(query: string) {
   const result = semanticQL(query);

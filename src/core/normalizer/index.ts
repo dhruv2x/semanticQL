@@ -24,7 +24,7 @@
  *      because they may be legitimate column values.
  */
 
-import { AGGREGATE_KEYWORDS } from "../language/index";
+import { AGGREGATE_KEYWORDS } from "../language/index.js";
 
 export interface NormalizeResult {
     isRaw: boolean;

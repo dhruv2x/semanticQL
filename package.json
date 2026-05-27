@@ -2,15 +2,24 @@
   "name": "semanticql",
   "version": "1.0.0",
   "description": "Simplified semantic SQL shell for PostgreSQL",
-  "license": "ISC",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
   "bin": {
     "semanticql": "./dist/cli/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dhruv2x/semanticQL.git"
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/cli/index.ts",
     "cli": "tsx src/cli/index.ts",
-    "start": "node dist/cli/index.js"
+    "start": "node dist/cli/index.js",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "postgres",
