@@ -1,6 +1,6 @@
 {
   "name": "semanticql",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simplified semantic SQL shell for PostgreSQL",
   "license": "MIT",
   "type": "module",
