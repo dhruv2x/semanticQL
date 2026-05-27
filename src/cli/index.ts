@@ -10,9 +10,9 @@
  */
 
 import dotenv from "dotenv";
-import { connectDB } from "../db/connection";
-import { startRepl } from "./repl";
-import { printWelcome } from "./output";
+import { connectDB } from "../db/connection.js";
+import { startRepl } from "./repl.js";
+import { printWelcome } from "./output.js";
 
 dotenv.config({ quiet: true });
 

@@ -11,7 +11,7 @@
  * - Welcome banner rendering
  */
 
-import { styles } from "../utils/styles";
+import { styles } from "../utils/styles.js";
 
 /**
  * Maximum width allowed for a single table cell before truncation.

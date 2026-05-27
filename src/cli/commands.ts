@@ -13,5 +13,9 @@ Available commands:
   help        Show help
   exit        Exit CLI
   \\q          Exit CLI
+  
+  Query options:
+  -d         Run query in debug mode
+  -r         Run raw query (can be used at the start or end)
 `);
 }

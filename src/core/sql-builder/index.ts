@@ -17,7 +17,7 @@ import type {
     QueryAST,
     QueryModifiers,
     SelectQueryAST,
-} from "../ast/types";
+} from "../ast/types.js";
 
 /**
  * The final output of the SQL builder, ready to be passed to a PostgreSQL client.
