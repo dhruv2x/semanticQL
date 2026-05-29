@@ -512,7 +512,7 @@ class StandardSelectPrefixParser implements SelectPrefixParser {
     private isSelectKeyword(token: Token | undefined): boolean {
         return (
             token?.type === "KEYWORD" &&
-            ["show", "list", "give", "fetch", "get"].includes(token.value)
+            ["show", "list", "give", "fetch", "get", "find"].includes(token.value)
         );
     }
 
@@ -541,7 +541,7 @@ class SelectQueryParser implements QueryParser {
             next !== undefined &&
             (next.type === "WORD" ||
                 (next.type === "KEYWORD" &&
-                    ["show", "list", "give", "fetch", "get", "top", "latest", "oldest"].includes(next.value)))
+                    ["show", "list", "give", "fetch", "get", "top", "latest", "oldest", "find"].includes(next.value)))
         );
     }
 

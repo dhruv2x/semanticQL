@@ -26,6 +26,7 @@ const KEYWORDS: string[] = [
     "list",
     "give",
     "fetch",
+    "find",
     "get",
     "top",
     "latest",

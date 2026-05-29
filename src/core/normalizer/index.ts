@@ -43,6 +43,7 @@ const FILLER_WORDS: ReadonlySet<string> = new Set([
 const TOP_LEVEL_KEYWORDS: readonly string[] = [
     ...AGGREGATE_KEYWORDS,
     "show",
+    "find",
     "list",
     "give",
     "fetch",
