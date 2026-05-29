@@ -32,6 +32,26 @@ npm install -g semanticql
 # 2. Start the CLI:
 semanticql db_name
 ```
+
+### Connecting without psql config
+
+SemanticQL also accepts psql-style connection flags, so it works on macOS,
+Windows, Linux, and environments where `psql` is not already configured.
+
+```bash
+semanticql -d db_name -h localhost -p 5432 -U postgres -W
+semanticql --url postgres://postgres:password@localhost:5432/db_name
+```
+
+You can also use PostgreSQL-compatible environment variables:
+
+```bash
+PGDATABASE=db_name PGHOST=localhost PGPORT=5432 PGUSER=postgres PGPASSWORD=password semanticql
+```
+
+SemanticQL also recognizes `DATABASE_URL`, `DB_NAME`, `DB_HOST`, `DB_PORT`,
+`DB_USER`, and `DB_PASSWORD`.
+
 ## Usage Examples
 
 ####  1. Normal Mode

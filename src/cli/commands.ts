@@ -18,6 +18,11 @@ Available commands:
   -d         Run query in debug mode
   -r         Run raw query (can be used at the start or end)
 
+  Startup connection options:
+  semanticql my_database
+  semanticql -d my_database -h localhost -p 5432 -U postgres -W
+  semanticql --url postgres://user:password@localhost:5432/my_database
+
   ---------------------------------------------------------
 Query Examples:
 
