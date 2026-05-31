@@ -34,12 +34,14 @@ type ParsedCliOptions = {
   connectOptions: CliConnectOptions;
   /** Flag indicating if the user requested the help/usage menu */
   showHelp: boolean;
+  showGrammar: boolean;
 };
 
 /**
  * Recognized flags for displaying the help menu.
  */
 const HELP_FLAGS = new Set(["--help", "-?"]);
+const GRAMMAR_FLAGS = new Set(["--grammar", "-g"]);
 
 /**
  * Prints the standard CLI usage instructions, showing available flags,
@@ -101,7 +103,11 @@ export async function parseCliOptions(
     const arg = argv[i];
 
     if (HELP_FLAGS.has(arg)) {
-      return { connectOptions, showHelp: true };
+      return { connectOptions, showHelp: true, showGrammar: false };
+    }
+
+    if (GRAMMAR_FLAGS.has(arg)) {
+      return { connectOptions, showHelp: false, showGrammar: true };
     }
 
     // Handle password separately because of its optional inline value behavior
@@ -171,7 +177,7 @@ export async function parseCliOptions(
     connectOptions.password = await promptForPassword();
   }
 
-  return { connectOptions, showHelp: false };
+  return { connectOptions, showHelp: false, showGrammar: false };
 }
 
 /**

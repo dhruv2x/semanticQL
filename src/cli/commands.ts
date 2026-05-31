@@ -1,3 +1,5 @@
+import { styles } from "../utils/styles.js";
+
 export function isExitCommand(input: string) {
   return ["exit", "quit", "\\q"].includes(input.trim().toLowerCase());
 }
@@ -8,49 +10,94 @@ export function isHelpCommand(input: string) {
 
 export function printHelp() {
   console.log(`
-Available commands:
+${styles.bgBlue(styles.white(styles.bold("  SemanticQL Help & Usage  ")))}
 
-  help        Show help
-  exit        Exit CLI
-  \\q          Exit CLI
+${styles.bold("Interactive REPL Commands:")}
+  ${styles.green("help")}        ${styles.gray("Show this help menu")}
+  ${styles.green("exit, \\q")}   ${styles.gray("Exit the CLI")}
+
+${styles.bold("Query Modifiers (Inside REPL):")}
+  ${styles.cyan("-d")}          ${styles.gray("Run query in debug mode (shows tokens, AST, and generated SQL)")}
+  ${styles.cyan("-r")}          ${styles.gray("Run raw SQL query (e.g., -r SELECT * FROM users;)")}
+
+${styles.bold("Startup Connection Flags:")}
+  ${styles.cyan("-d, --dbname")}     ${styles.gray("Database name")}
+  ${styles.cyan("-h, --host")}       ${styles.gray("Database server host")}
+  ${styles.cyan("-p, --port")}       ${styles.gray("Database server port")}
+  ${styles.cyan("-U, --username")}   ${styles.gray("Database user")}
+  ${styles.cyan("-W, --password")}   ${styles.gray("Prompt for password")}
+  ${styles.cyan("--url")}            ${styles.gray("PostgreSQL connection URL")}
+  ${styles.cyan("--grammar, -g")}    ${styles.gray("Show the SemanticQL syntax cheat sheet")}
+
+${styles.dim("---------------------------------------------------------")}
+💡 ${styles.bold("Need syntax examples?")} 
+Exit the REPL and run: ${styles.yellow("semanticql --grammar")}
+${styles.dim("---------------------------------------------------------")}
+`);
+}
+
+export function printGrammar() {
+  console.log(`
+${styles.bgBlue(styles.white(styles.bold("  SemanticQL Cheat Sheet & Examples  ")))}
+
+${styles.dim("Note: The words in ")}${styles.yellow("yellow")}${styles.dim(" are examples of your actual tables, columns, and values.")}
+
+${styles.bold("1. Basic Queries (Selecting Data)")}
+Use verbs like: ${styles.cyan("show, list, fetch, get, find")}
+
+  ${styles.gray("// Show an entire table")}
+  > ${styles.green("show")} ${styles.yellow("user_table")}
   
-  Query options:
-  -d         Run query in debug mode
-  -r         Run raw query (can be used at the start or end)
+  ${styles.gray("// Pick specific columns")}
+  > ${styles.green("list")} ${styles.yellow("id, name")} ${styles.green("from")} ${styles.yellow("customers")}
 
-  Startup connection options:
-  semanticql my_database
-  semanticql -d my_database -h localhost -p 5432 -U postgres -W
-  semanticql --url postgres://user:password@localhost:5432/my_database
+${styles.bold("2. Filtering Data (Where / With)")}
+Connectors: ${styles.cyan("where, with, and, or")}
 
-  ---------------------------------------------------------
-Query Examples:
+  ${styles.gray("// Exact match")}
+  > ${styles.green("find")} ${styles.yellow("orders")} ${styles.green("where")} ${styles.yellow("status")} ${styles.green("is")} ${styles.yellow("shipped")}
+  
+  ${styles.gray("// Number comparisons (>, <, >=, <=)")}
+  > ${styles.green("show")} ${styles.yellow("products")} ${styles.green("with")} ${styles.yellow("price")} ${styles.green("less than")} ${styles.yellow("50")}
+  > ${styles.green("fetch")} ${styles.yellow("payments")} ${styles.green("where")} ${styles.yellow("amount")} ${styles.green("is at least")} ${styles.yellow("100")}
+  
+  ${styles.gray("// Text search")}
+  > ${styles.green("list")} ${styles.yellow("customers")} ${styles.green("where")} ${styles.yellow("email")} ${styles.green("ends with")} ${styles.yellow("'@gmail.com'")}
+  > ${styles.green("show")} ${styles.yellow("users")} ${styles.green("where")} ${styles.yellow("name")} ${styles.green("starts with")} ${styles.yellow("'A'")}
 
-1. Basic Selection:
-   - show user_table
-   - list id, name from product_table
-   - fetch order_table
+  ${styles.gray("// Multiple conditions")}
+  > ${styles.green("show")} ${styles.yellow("order_table")} ${styles.green("where")} ${styles.yellow("total")} ${styles.green(">")} ${styles.yellow("100")} ${styles.green("and")} ${styles.yellow("status")} ${styles.green("is")} ${styles.yellow("paid")}
 
-2. Filtering (using 'with' or 'where'):
-   - show user_table where age is 18
-   - list product_table with price greater than 100
-   - fetch user_table where name starts with 'John'
-   - show order_table where status is 'paid' and total > 50
+${styles.bold("3. Aggregations (Math & Counting)")}
+Use math words: ${styles.cyan("count, sum, avg, average, max, highest, min, lowest")}
 
-3. Sorting & Limiting:
-   - list user_table sort by created_at desc
-   - show product_table order by price ascending limit 5
-   - top 10 website_table
+  ${styles.gray("// Count rows")}
+  > ${styles.green("how many")} ${styles.yellow("users")}
+  > ${styles.green("count")} ${styles.yellow("orders")} ${styles.green("where")} ${styles.yellow("status")} ${styles.green("is")} ${styles.yellow("pending")}
+  
+  ${styles.gray("// Calculate totals and averages")}
+  > ${styles.green("sum")} ${styles.yellow("amount")} ${styles.green("from")} ${styles.yellow("payments")}
+  > ${styles.green("highest")} ${styles.yellow("score")} ${styles.green("from")} ${styles.yellow("exams")}
 
-4. Aggregations (Math):
-   - count user_table
-   - how many order_table with status is 'shipped'
-   - sum amount from payments
-   - average price from product_table
-   - highest total from order_table
+${styles.bold("4. Sorting & Limiting")}
+Use modifiers: ${styles.cyan("sort by, order by, limit")}
 
-5. Raw SQL Bypass (Use -r flag):
-   - -r SELECT * FROM users WHERE id = 1;
-   - SELECT COUNT(*) FROM products; -r
+  ${styles.gray("// Basic sorting")}
+  > ${styles.green("show")} ${styles.yellow("user_table")} ${styles.green("sort by")} ${styles.yellow("created_at")} ${styles.green("desc")}
+
+  ${styles.gray("// Limiting results")}
+  > ${styles.green("fetch")} ${styles.yellow("logs")} ${styles.green("limit")} ${styles.yellow("10")}
+
+${styles.bold("5. Shortcuts (Top, Latest, Oldest)")}
+Quick prefixes for common tasks.
+
+  ${styles.gray("// Quick Top-N")}
+  > ${styles.green("top")} ${styles.yellow("10")} ${styles.yellow("customers")}
+  
+  ${styles.gray("// Quick latest/oldest")}
+  > ${styles.green("latest")} ${styles.yellow("orders")}       ${styles.dim("(Implies: sort by created_at desc)")}
+  > ${styles.green("oldest")} ${styles.yellow("users")}        ${styles.dim("(Implies: sort by created_at asc)")}
+
+=========================================================
 `);
 }

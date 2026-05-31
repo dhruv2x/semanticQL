@@ -54,7 +54,18 @@ SemanticQL also recognizes `DATABASE_URL`, `DB_NAME`, `DB_HOST`, `DB_PORT`,
 
 ## Usage Examples
 
-####  1. Normal Mode
+####  1. Syntax & Grammar Cheat Sheet
+Forget how to filter or sort? SemanticQL comes with a built-in, cheat sheet with examples to get you up and running instantly!
+
+```bash
+# View the interactive syntax guide:
+semanticql --grammar
+
+# Or use the short flag:
+semanticql -g
+```
+
+####  2. Normal Mode
 
 try typing:
 ```bash
@@ -64,13 +75,13 @@ semanticql > top 10 orders sort by amount descending
 semanticql > show name, email from customers where age is greater than 18
 ```
 
-#### 2. Debug Mode
+#### 3. Debug Mode
 
 Want to inspect the generated SQL?
 ```bash
 semanticql > show users -d
 ```
-#### 3. Raw SQL Mode
+#### 4. Raw SQL Mode
 
 Need to bypass the SemanticQL engine completely?
 ```bash
