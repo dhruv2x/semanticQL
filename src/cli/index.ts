@@ -36,11 +36,6 @@ async function main() {
       process.exit(0);
     }
 
-    if (!connectOptions.database && !connectOptions.connectionString) {
-      printUsage();
-      process.exit(1);
-    }
-
     connectDB(connectOptions);
     await validateDBConnection();
 

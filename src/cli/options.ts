@@ -217,10 +217,10 @@ function applyEnvironmentDefaults(
   env: NodeJS.ProcessEnv
 ): void {
   options.connectionString ??= env.DATABASE_URL;
-  options.database ??= env.DB_NAME ?? env.PGDATABASE;
-  options.host ??= env.DB_HOST ?? env.PGHOST;
-  options.port ??= parseOptionalPort(env.DB_PORT ?? env.PGPORT);
-  options.user ??= env.DB_USER ?? env.PGUSER ?? env.USER ?? env.USERNAME;
+  options.user ??= env.DB_USER ?? env.PGUSER ?? env.USER ?? env.USERNAME ?? "postgres";
+  options.database ??= env.DB_NAME ?? env.PGDATABASE ?? options.user;
+  options.host ??= env.DB_HOST ?? env.PGHOST ?? "/var/run/postgresql";
+  options.port ??= parseOptionalPort(env.DB_PORT ?? env.PGPORT) ?? 5432;
   options.password ??= env.DB_PASSWORD ?? env.PGPASSWORD;
 }
 

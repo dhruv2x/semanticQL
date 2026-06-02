@@ -36,7 +36,7 @@ semanticql db_name
 ### Connecting without psql config
 
 SemanticQL also accepts psql-style connection flags, so it works on macOS,
-Windows, Linux, and environments where `psql` is not already configured.
+Windows, Linux, and environments where `psql` is not already configured. If no flags are provided, SemanticQL will automatically fallback to your system defaults:
 
 ```bash
 semanticql -d db_name -h localhost -p 5432 -U postgres -W
@@ -54,11 +54,18 @@ SemanticQL also recognizes `DATABASE_URL`, `DB_NAME`, `DB_HOST`, `DB_PORT`,
 
 ## Usage Examples
 
-####  1. Syntax & Grammar Cheat Sheet
-Forget how to filter or sort? SemanticQL comes with a built-in, cheat sheet with examples to get you up and running instantly!
+####  1. Built-in Cheat Sheet
+Don't remember the syntax? You don't have to exit the shell to check! 
+
+just type `\g` or `grammar` to instantly view the syntax cheat sheet and examples.
 
 ```bash
-# View the interactive syntax guide:
+semanticql > \g
+```
+
+We can also view grammer sheet outside of semanticQL REPL?
+
+```bash
 semanticql --grammar
 
 # Or use the short flag:

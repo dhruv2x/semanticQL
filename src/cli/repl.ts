@@ -16,6 +16,8 @@ import {
 import { printRows } from "./output.js";
 import {
   isExitCommand,
+  isGrammarCommand,
+  printGrammar,
   isHelpCommand,
   printHelp,
 } from "./commands.js";
@@ -41,6 +43,12 @@ export async function startRepl() {
 
     if (isHelpCommand(query)) {
       printHelp();
+      rl.prompt();
+      return;
+    }
+
+    if (isGrammarCommand(query)) {
+      printGrammar();
       rl.prompt();
       return;
     }

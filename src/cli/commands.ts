@@ -1,5 +1,9 @@
 import { styles } from "../utils/styles.js";
 
+export function isGrammarCommand(input: string) {
+  return ["grammar", "\\g"].includes(input.trim().toLowerCase());
+}
+
 export function isExitCommand(input: string) {
   return ["exit", "quit", "\\q"].includes(input.trim().toLowerCase());
 }
